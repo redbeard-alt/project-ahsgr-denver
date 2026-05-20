@@ -43,17 +43,22 @@ class TestNormalizer:
 
 
 # ---------------------------------------------------------------------------
-# MCP tools (with empty index)
+# MCP tools
 # ---------------------------------------------------------------------------
 
-class TestMCPToolsEmptyIndex:
+class TestMCPTools:
     def test_search_roster_returns_meta(self):
         result = search_roster()
         assert result[-1].get("_meta") is True
 
-    def test_search_roster_total_zero(self):
+    def test_search_roster_total_is_nonnegative(self):
         result = search_roster()
-        assert result[-1]["_total"] == 0
+        assert result[-1]["_total"] >= 0
+
+    def test_search_roster_filters_by_role(self):
+        result = search_roster(role="president")
+        hits = [r for r in result if not r.get("_meta")]
+        assert all("president" in r["role"] for r in hits)
 
     def test_get_chapter_summary_no_error_when_md_exists(self, tmp_path, monkeypatch):
         import lib.ashgr_mcp_server as srv
@@ -66,7 +71,9 @@ class TestMCPToolsEmptyIndex:
         result = srv.get_chapter_summary()
         assert result["total_records"] == 5
 
-    def test_get_chapter_summary_missing_md(self):
-        result = get_chapter_summary()
-        # Either error key or total_records == 0 depending on whether file exists
-        assert "error" in result or result.get("total_records") == 0
+    def test_get_chapter_summary_missing_md(self, tmp_path, monkeypatch):
+        import lib.ashgr_mcp_server as srv
+        monkeypatch.setattr(srv, "ROOT", tmp_path)
+        (tmp_path / "docs").mkdir()
+        result = srv.get_chapter_summary()
+        assert "error" in result

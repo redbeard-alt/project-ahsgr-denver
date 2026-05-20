@@ -1,14 +1,14 @@
 # ASHGR Denver Roster Index
 
-**Generated:** (not yet built)
-**Total records:** 0
+**Generated:** 2026-05-20
+**Total records:** 7
 **Source:** newsletter + member directory
 
 ## Coverage
 
 | Role Category | Count | Source |
 |---|---|---|
-| Board positions | 0 | TBD |
-| Officers | 0 | TBD |
+| board | 6 | newsletter |
+| officers | 1 | newsletter |
 
-Run `python build_roster_index.py` to populate.
+Run `python build_roster_index.py` to regenerate.
