@@ -9,6 +9,25 @@ Mirrors the project-svvsd architecture: extract → normalize → CSV index → 
 **OpenClaw client slug:** `ahsgr-north-denver`
 **Client type:** `nonprofit-chapter`
 
+## Data Hub
+
+Promotes outputs to `~/Laboratory/data-hub-ashgr-denver/`:
+
+```bash
+cd ~/Laboratory/data-hub-ashgr-denver
+.venv/bin/python cli.py promote <file> --topic board/roster --source-agent project-ashgr-denver
+make build
+```
+
+## Project Working Folder
+
+`projects/ahsgr-north-denver/` — client outputs, working files, archives, memory:
+
+- `working/` — in-progress files
+- `output/` — completed deliverables (promote to data-hub when ready)
+- `archive/` — frozen versioned snapshots
+- `memory/` — persistent project notes and decisions across sessions
+
 ## Architecture
 
 ```
