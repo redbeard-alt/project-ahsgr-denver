@@ -1,0 +1,10 @@
+fastmcp>=2.0
+pydantic>=2.0
+httpx
+trafilatura
+beautifulsoup4
+lxml
+pdfplumber
+pandas
+pytest
+ruff

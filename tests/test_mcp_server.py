@@ -1,0 +1,72 @@
+"""Tests for ashgr_mcp_server tools (offline — no gateway required)."""
+
+import csv
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from lib.ashgr_mcp_server import search_roster, get_chapter_summary
+from lib.normalizer import normalize_name, normalize_role, role_category, make_record
+
+
+# ---------------------------------------------------------------------------
+# Normalizer
+# ---------------------------------------------------------------------------
+
+class TestNormalizer:
+    def test_normalize_name_already_last_first(self):
+        assert normalize_name("Smith, John") == "Smith, John"
+
+    def test_normalize_name_first_last(self):
+        assert normalize_name("John Smith") == "Smith, John"
+
+    def test_normalize_role_newsletter_editor(self):
+        assert normalize_role("Newsletter Editor") == "newsletter_editor"
+
+    def test_normalize_role_member_committee_chair(self):
+        result = normalize_role("Member Committee Chairman")
+        assert "member_committee_chair" in result
+
+    def test_role_category_board(self):
+        assert role_category("president") == "board"
+
+    def test_role_category_officer(self):
+        assert role_category("newsletter_editor") == "officers"
+
+    def test_make_record_shape(self):
+        r = make_record("Jane Doe", "president", start_date="2024-01-01")
+        assert set(r.keys()) == {"name", "role", "role_category", "start_date", "end_date",
+                                  "source_file", "source_page", "notes"}
+
+
+# ---------------------------------------------------------------------------
+# MCP tools (with empty index)
+# ---------------------------------------------------------------------------
+
+class TestMCPToolsEmptyIndex:
+    def test_search_roster_returns_meta(self):
+        result = search_roster()
+        assert result[-1].get("_meta") is True
+
+    def test_search_roster_total_zero(self):
+        result = search_roster()
+        assert result[-1]["_total"] == 0
+
+    def test_get_chapter_summary_no_error_when_md_exists(self, tmp_path, monkeypatch):
+        import lib.ashgr_mcp_server as srv
+        monkeypatch.setattr(srv, "ROOT", tmp_path)
+        docs = tmp_path / "docs"
+        docs.mkdir()
+        (docs / "roster_index.md").write_text(
+            "**Generated:** 2026-01-01\n**Total records:** 5\n"
+        )
+        result = srv.get_chapter_summary()
+        assert result["total_records"] == 5
+
+    def test_get_chapter_summary_missing_md(self):
+        result = get_chapter_summary()
+        # Either error key or total_records == 0 depending on whether file exists
+        assert "error" in result or result.get("total_records") == 0
