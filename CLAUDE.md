@@ -80,3 +80,17 @@ Or configure via `openclaw-agent`:
 cd ~/Laboratory/openclaw-agent
 python cli.py configure --client ahsgr-north-denver
 ```
+
+## Claude Skills
+
+Project-unique skills live in `.claude/skills/ashgr/`. Shared skills are served via `additionalDirectories` from `config-ai-agent/skills/` — no local copies needed.
+
+| Skill | Trigger phrases |
+| --- | --- |
+| `ashgr/ingest-journals` | "ingest journal PDFs", "promote journals", "add new Unsere Zeitung issues" |
+| `ashgr/roster-extraction` | "extract roster", "update member list", "parse chapter roster" |
+| `rag/data-hub-promote` | "promote to data hub", "file this", "push to data-hub-ahsgr-denver" |
+| `rag/lancedb-search` | "search the journal archive", "find articles on", "RAG search", "semantic search" |
+| `scraping/bright-data-mcp` | "fetch this URL", "look up online", any live web lookup |
+| `scraping/search` | "search for", "find articles about", SERP discovery |
+| `memory/prior-context-check` | "what do I know about", "check prior context", "have I seen this member" |
