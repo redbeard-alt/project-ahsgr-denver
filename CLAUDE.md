@@ -92,5 +92,5 @@ Project-unique skills live in `.claude/skills/ashgr/`. Shared skills are served 
 | `rag/data-hub-promote` | "promote to data hub", "file this", "push to data-hub-ahsgr-denver" |
 | `rag/lancedb-search` | "search the journal archive", "find articles on", "RAG search", "semantic search" |
 | `scraping/bright-data-mcp` | "fetch this URL", "look up online", any live web lookup |
-| `scraping/search` | "search for", "find articles about", SERP discovery |
+| `discover-urls` | "search for", "find articles about", URL discovery |
 | `memory/prior-context-check` | "what do I know about", "check prior context", "have I seen this member" |
