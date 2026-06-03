@@ -31,7 +31,12 @@
    + Eventbrite graphics). Decide the canonical studio/published folder convention.
 2. **Index the raw audio** in `data-hub-ahsgr` (transcribe board meeting + the relocated calls —
    whisperX already produced 0428Call transcripts; reuse/normalize) → RAG/structured, exposed to
-   project-ahsgr-denver (mirror the ratfam `build_correspondence_index`/MCP pattern).
+   project-ahsgr-denver (mirror the ratfam `build_correspondence_index`/MCP pattern). Follow the
+   cross-repo doc+audio playbook:
+   [support/project-data-hub/references/DOC_AUDIO_CORPUS_PLAYBOOK.md](https://github.com/redbeard-alt/support/blob/main/project-data-hub/references/DOC_AUDIO_CORPUS_PLAYBOOK.md)
+   (shared metadata contract, isolated `AUDIO_AGENT_DATA_DIR` + ingest bridge, one corpus discriminated
+   by `doc_type`, MCP surface) — this repo is a representative adopter shape for that pattern; the
+   actual adoption work is tracked here in this plan.
 3. **Publish artifacts**: route NotebookLM audio/video to the chapter-meeting / YouTube / *Unsere
    Zeitung* newsletter workflow (likely via notebooklm-agent + newsletter-agent).
 4. **Sweep the rest of `~/Downloads`** (a large mixed NotebookLM-artifact staging area): grab the
