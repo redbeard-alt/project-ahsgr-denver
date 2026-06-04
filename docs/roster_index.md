@@ -1,4 +1,4 @@
-# ASHGR Denver Roster Index
+# AHSGR Denver Roster Index
 
 **Generated:** 2026-05-20
 **Total records:** 7

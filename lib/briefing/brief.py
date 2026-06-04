@@ -162,6 +162,7 @@ def run_brief(
     console: Console,
     force: bool = False,
     since: Optional[str] = None,
+    build: bool = True,
 ) -> None:
     """Generate + deliver a brief — only if there is grounded context.
 
@@ -169,6 +170,11 @@ def run_brief(
     LLM call or delivery. `force=True` is for explicit tests only and is never
     used by the scheduled jobs.
     """
+    if build:
+        from . import context_builder
+
+        context_builder.build_context(console)
+
     items = grounded_items(load_context())
 
     if not items and not force:

@@ -1,21 +1,24 @@
-# CLAUDE.md — project-ashgr-denver
+# CLAUDE.md — project-ahsgr-denver
 
 ## Purpose
 
-Corpus and MCP server for ASHGR North Denver Chapter (American Heritage Society of Germans from Russia). Tracks board and officer roles over time — president, vice president, secretary, treasurer, directors, newsletter editor, marketing director, and member committee chair — extracted from newsletters and member directories.
+Corpus and MCP server for AHSGR North Denver Chapter (American Historical Society of Germans from Russia). Tracks board and officer roles over time — president, vice president, secretary, treasurer, directors, newsletter editor, marketing director, and member committee chair — extracted from newsletters and member directories.
 
 Mirrors the project-svvsd architecture: extract → normalize → CSV index → FastMCP search tools → openclaw.
+
+Canonical roadmap/status pointer: `~/Laboratory/support/project-ahsgr-denver/MASTER_PLAN.md`
+tracks the separate home-audit remediation and links to the active orchestrator roadmap.
 
 **OpenClaw client slug:** `ahsgr-north-denver`
 **Client type:** `nonprofit-chapter`
 
 ## Data Hub
 
-Promotes outputs to `~/Laboratory/data-hub-ashgr-denver/`:
+Promotes outputs to `/Volumes/BJH/data-hub-ahsgr/` (`~/Laboratory/data-hub-ahsgr` symlink):
 
 ```bash
-cd ~/Laboratory/data-hub-ashgr-denver
-.venv/bin/python cli.py promote <file> --topic board/roster --source-agent project-ashgr-denver
+cd ~/Laboratory/data-hub-ahsgr
+.venv/bin/python cli.py promote <file> --topic board/roster --source-agent project-ahsgr-denver
 make build
 ```
 
@@ -35,7 +38,7 @@ data/               source documents (newsletters, PDFs) — gitignored
 lib/
   extractor.py      extract name/role records from text or PDF
   normalizer.py     coerce to roster schema (Last, First / role slug)
-  ashgr_mcp_server.py  FastMCP server: search_roster, get_chapter_summary
+  ashgr_mcp_server.py  FastMCP server: search_roster, get_chapter_summary (legacy filename)
 config/
   format_rules.yml  canonical role names and normalization rules
 output/
@@ -68,13 +71,8 @@ make lint           # ruff
 
 ## OpenClaw Registration
 
-The MCP server registers as `ashgr-denver-corpus` in openclaw. Run:
-
-```bash
-openclaw gateway register --name ashgr-denver-corpus --command ".venv/bin/python lib/ashgr_mcp_server.py" --cwd ~/Laboratory/project-ashgr-denver
-```
-
-Or configure via `openclaw-agent`:
+The OpenClaw client uses slug `ahsgr-north-denver` and points at `lib/ashgr_mcp_server.py`
+(legacy filename retained for compatibility). To configure through openclaw-agent:
 
 ```bash
 cd ~/Laboratory/openclaw-agent
@@ -83,13 +81,13 @@ python cli.py configure --client ahsgr-north-denver
 
 ## Claude Skills
 
-Project-unique skills live in `.claude/skills/ashgr/`. Shared skills are served via `additionalDirectories` from `config-ai-agent/skills/` — no local copies needed.
+Project-unique skills live in `.claude/skills/ahsgr/` when present. Shared skills are served via `additionalDirectories` from `config-ai-agent/skills/` — no local copies needed.
 
 | Skill | Trigger phrases |
 | --- | --- |
-| `ashgr/ingest-journals` | "ingest journal PDFs", "promote journals", "add new Unsere Zeitung issues" |
-| `ashgr/roster-extraction` | "extract roster", "update member list", "parse chapter roster" |
-| `rag/data-hub-promote` | "promote to data hub", "file this", "push to data-hub-ahsgr-denver" |
+| `ahsgr/ingest-journals` | "ingest journal PDFs", "promote journals", "add new Unsere Zeitung issues" |
+| `ahsgr/roster-extraction` | "extract roster", "update member list", "parse chapter roster" |
+| `rag/data-hub-promote` | "promote to data hub", "file this", "push to data-hub-ahsgr" |
 | `rag/lancedb-search` | "search the journal archive", "find articles on", "RAG search", "semantic search" |
 | `scraping/bright-data-mcp` | "fetch this URL", "look up online", any live web lookup |
 | `discover-urls` | "search for", "find articles about", URL discovery |

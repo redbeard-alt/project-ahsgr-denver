@@ -1,4 +1,4 @@
-# format_rules.yml — ASHGR Denver roster normalization rules
+# format_rules.yml — AHSGR Denver roster normalization rules
 
 roles:
   # Canonical role labels (lowercase, used as CSV values)

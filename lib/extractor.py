@@ -1,4 +1,4 @@
-"""Extract name/role records from ASHGR newsletter markdown or PDF text."""
+"""Extract name/role records from AHSGR newsletter markdown or PDF text."""
 
 import re
 from pathlib import Path

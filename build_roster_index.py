@@ -51,7 +51,7 @@ def write_md(records: list[dict], dry_run: bool) -> None:
         for cat, count in sorted(by_cat.items())
     )
 
-    md = f"""# ASHGR Denver Roster Index
+    md = f"""# AHSGR Denver Roster Index
 
 **Generated:** {now}
 **Total records:** {len(records)}

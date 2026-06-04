@@ -15,12 +15,8 @@ Regenerate or update the FastMCP server after schema changes or new tools.
 3. Restart server in openclaw:
 
 ```bash
-openclaw gateway restart ashgr-denver-corpus
-# or full re-register:
-openclaw gateway register \
-  --name ashgr-denver-corpus \
-  --command ".venv/bin/python lib/ashgr_mcp_server.py" \
-  --cwd ~/Laboratory/project-ashgr-denver
+cd ~/Laboratory/openclaw-agent
+python cli.py configure --client ahsgr-north-denver
 ```
 
 4. Test via openclaw-agent: `make configure --client ahsgr-north-denver`

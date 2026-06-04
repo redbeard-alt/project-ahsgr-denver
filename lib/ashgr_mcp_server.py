@@ -1,5 +1,8 @@
 """
-FastMCP server — ashgr-denver-corpus
+FastMCP server — ahsgr-north-denver corpus.
+
+The filename is retained as ``ashgr_mcp_server.py`` for compatibility with the
+current OpenClaw client config.
 
 Tools:
   search_roster      Search officer/board records (docs/roster_index.csv)
@@ -14,7 +17,7 @@ from fastmcp import FastMCP
 
 ROOT = Path(__file__).parent.parent
 
-mcp = FastMCP("ashgr-denver-corpus")
+mcp = FastMCP("ahsgr-north-denver")
 
 
 # ---------------------------------------------------------------------------
@@ -65,7 +68,7 @@ def search_roster(
     limit: int = 0,
     offset: int = 0,
 ) -> list[dict]:
-    """Search ASHGR Denver officer and board records.
+    """Search AHSGR Denver officer and board records.
 
     Args:
         name: Partial name match (case-insensitive).
@@ -97,7 +100,7 @@ def search_roster(
 
 @mcp.tool()
 def get_chapter_summary() -> dict:
-    """Return ASHGR Denver roster coverage stats from docs/roster_index.md."""
+    """Return AHSGR Denver roster coverage stats from docs/roster_index.md."""
     md_path = ROOT / "docs" / "roster_index.md"
     if not md_path.exists():
         return {"error": "roster_index.md not found"}

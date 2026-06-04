@@ -2,8 +2,8 @@
 """AHSGR executive-assistant briefing CLI.
 
 Usage:
-    .venv/bin/python brief.py morning [--preview] [--force] [--since WINDOW]
-    .venv/bin/python brief.py eod     [--preview] [--force] [--since WINDOW]
+    .venv/bin/python brief.py morning [--preview] [--force] [--since WINDOW] [--no-build]
+    .venv/bin/python brief.py eod     [--preview] [--force] [--since WINDOW] [--no-build]
     .venv/bin/python brief.py channel test  [discord|slack|all]
     .venv/bin/python brief.py channel pause <discord|slack|all> <30m|2h|1d>
 
@@ -32,6 +32,7 @@ def main() -> None:
         p.add_argument("--preview", action="store_true", help="render only; do not deliver")
         p.add_argument("--force", action="store_true", help="bypass the fabrication gate (test only)")
         p.add_argument("--since", default=None, help="only include items since WINDOW")
+        p.add_argument("--no-build", action="store_true", help="use existing data/context.md")
 
     pc = sub.add_parser("channel", help="channel management")
     csub = pc.add_subparsers(dest="channel_command", required=True)
@@ -45,7 +46,7 @@ def main() -> None:
 
     if args.command in ("morning", "eod"):
         run_brief(args.command, preview=args.preview, console=console,
-                  force=args.force, since=args.since)
+                  force=args.force, since=args.since, build=not args.no_build)
     elif args.command == "channel":
         if args.channel_command == "test":
             delivery.test_channel(args.target, console)
