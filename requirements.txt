@@ -8,3 +8,5 @@ pdfplumber
 pandas
 pytest
 ruff
+lancedb
+sentence-transformers
