@@ -20,6 +20,7 @@ venv/
 .env
 *.pem
 *.key
+clients/**/google_credentials.json
 
 # Data — source docs are never committed
 data/

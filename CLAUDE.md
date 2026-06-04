@@ -11,11 +11,11 @@ Mirrors the project-svvsd architecture: extract → normalize → CSV index → 
 
 ## Data Hub
 
-Promotes outputs to `~/Laboratory/data-hub-ashgr-denver/`:
+Promotes outputs to `/Volumes/BJH/data-hub-ahsgr/` (`~/Laboratory/data-hub-ahsgr` symlink):
 
 ```bash
-cd ~/Laboratory/data-hub-ashgr-denver
-.venv/bin/python cli.py promote <file> --topic board/roster --source-agent project-ashgr-denver
+cd ~/Laboratory/data-hub-ahsgr
+.venv/bin/python cli.py promote <file> --topic board/roster --source-agent project-ahsgr-denver
 make build
 ```
 
@@ -89,7 +89,7 @@ Project-unique skills live in `.claude/skills/ashgr/`. Shared skills are served 
 | --- | --- |
 | `ashgr/ingest-journals` | "ingest journal PDFs", "promote journals", "add new Unsere Zeitung issues" |
 | `ashgr/roster-extraction` | "extract roster", "update member list", "parse chapter roster" |
-| `rag/data-hub-promote` | "promote to data hub", "file this", "push to data-hub-ahsgr-denver" |
+| `rag/data-hub-promote` | "promote to data hub", "file this", "push to data-hub-ahsgr" |
 | `rag/lancedb-search` | "search the journal archive", "find articles on", "RAG search", "semantic search" |
 | `scraping/bright-data-mcp` | "fetch this URL", "look up online", any live web lookup |
 | `discover-urls` | "search for", "find articles about", URL discovery |
