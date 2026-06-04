@@ -1,0 +1,14 @@
+# Delivery routing. Primary = preview Discord channel until Phase 2 promotion criteria met
+# (7 consecutive runs incl. >=1 silenced empty-day + >=1 data-matched brief). No fallback
+# until Slack is wired. Webhook URLs live in .gitignored .env, never here.
+channels:
+  discord:
+    enabled: true
+    destination: "exec-briefings (preview)"
+  slack:
+    enabled: false
+    destination: "#exec-briefings"
+routing:
+  work:
+    primary: discord
+    fallback: ""

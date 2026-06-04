@@ -1,0 +1,9 @@
+# EOD Recap schema. The code reads: label, char_budget, sections (keys, in order).
+label: EOD Recap
+char_budget: 2400
+sections:
+  completed_today:   # owner, item, status
+  carries_forward:   # owner, item, next_step, due
+  blockers:          # blocker, impact, owner
+  followups:         # audience, draft_needed, urgency
+  flags:             # watch items

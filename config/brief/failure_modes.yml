@@ -1,0 +1,20 @@
+# Failure-mode policy (informational — the empty-context gate is ENFORCED in
+# lib/briefing/brief.py:run_brief, not here). No hardcoded machine paths.
+policies:
+  model_timeout_seconds: 180
+  delivery_retry:
+    max_attempts: 5
+    backoff_seconds: [10, 30, 60, 120, 300]
+failure_modes:
+  - id: empty-context
+    detect: "no grounded items in data/context.md"
+    behavior: "suppress — no LLM call, no delivery"   # the fabrication gate
+    tag: "[suppressed]"
+  - id: model-timeout
+    detect: "generation_time > model_timeout_seconds"
+    behavior: "log + skip this run (no partial/raw delivery)"
+    tag: "[degraded]"
+  - id: channel-api-error
+    detect: "discord_or_slack_delivery_failure"
+    behavior: "try fallback channel; else log"
+    tag: "[delivery-delayed]"

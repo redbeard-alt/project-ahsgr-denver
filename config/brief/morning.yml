@@ -1,0 +1,9 @@
+# Morning Brief schema. The code reads: label, char_budget, sections (keys, in order).
+label: Morning Brief
+char_budget: 2400
+sections:
+  calendar:    # next 24h — time, title, attendees, location
+  tasks:       # new / due today / overdue
+  email:       # threads needing reply / important unread
+  research:    # github activity / notebooklm updates
+  flags:       # blockers, risks, watch items
