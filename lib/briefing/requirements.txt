@@ -1,0 +1,7 @@
+# Lean deps for the dedicated brief venv (~/.venvs/ahsgr-brief).
+# Kept separate from the repo's main requirements.txt so the scheduled job's
+# environment is minimal and not coupled to the MCP/roster toolchain.
+httpx
+pyyaml
+rich
+python-dotenv
