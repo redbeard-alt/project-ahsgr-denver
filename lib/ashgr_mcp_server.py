@@ -13,6 +13,7 @@ Tools:
 import csv
 import os
 import re
+import sqlite3
 from pathlib import Path
 
 from fastmcp import FastMCP
@@ -20,6 +21,7 @@ from fastmcp import FastMCP
 ROOT = Path(__file__).parent.parent
 DEFAULT_DATA_HUB = Path("/Volumes/BJH/data-hub-ahsgr")
 LANCEDB_TABLE = "ahsgr_denver"
+BOARD_INDEX_DB = ROOT / "docs" / "board_index.db"
 
 mcp = FastMCP("ahsgr-north-denver")
 
@@ -56,6 +58,23 @@ def _paginate(results: list[dict], limit: int, offset: int) -> list[dict]:
         sentinel["_limit"] = limit
         sentinel["_has_more"] = (offset + len(page)) < total
     return page + [sentinel]
+
+
+def _board_db_path() -> Path:
+    return Path(os.environ.get("AHSGR_BOARD_INDEX_DB", BOARD_INDEX_DB))
+
+
+def _query_board_db(sql: str, params: tuple, limit: int, offset: int) -> list[dict]:
+    db_path = _board_db_path()
+    if not db_path.exists():
+        return [{"error": f"board_index.db not found at {db_path}. Run build_board_index.py."}]
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = [dict(row) for row in conn.execute(sql, params)]
+    finally:
+        conn.close()
+    return _paginate(rows, limit, offset)
 
 
 # ---------------------------------------------------------------------------
@@ -133,7 +152,95 @@ def get_chapter_summary() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Tool 3: semantic_search
+# Tool 3: search_board_documents
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def search_board_documents(
+    keyword: str = "",
+    doc_type: str = "",
+    topic: str = "",
+    date_from: str = "",
+    date_to: str = "",
+    limit: int = 20,
+    offset: int = 0,
+) -> list[dict]:
+    """Search AHSGR board documents parsed from data-hub-ahsgr."""
+    where = []
+    params: list[str] = []
+    if keyword:
+        where.append("(title LIKE ? OR text LIKE ?)")
+        params.extend([f"%{keyword}%", f"%{keyword}%"])
+    if doc_type:
+        where.append("doc_type = ?")
+        params.append(doc_type)
+    if topic:
+        where.append("topic LIKE ?")
+        params.append(f"{topic}%")
+    if date_from:
+        where.append("doc_date >= ?")
+        params.append(date_from)
+    if date_to:
+        where.append("doc_date <= ?")
+        params.append(date_to)
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    return _query_board_db(
+        f"""
+        SELECT path, title, topic, tier, doc_type, doc_date
+        FROM documents
+        {clause}
+        ORDER BY doc_date DESC, path
+        """,
+        tuple(params),
+        limit,
+        offset,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Tool 4: search_action_items
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def search_action_items(
+    status: str = "open",
+    keyword: str = "",
+    date_from: str = "",
+    date_to: str = "",
+    limit: int = 20,
+    offset: int = 0,
+) -> list[dict]:
+    """Search extracted AHSGR board action items."""
+    where = []
+    params: list[str] = []
+    if status:
+        where.append("status = ?")
+        params.append(status)
+    if keyword:
+        where.append("item_text LIKE ?")
+        params.append(f"%{keyword}%")
+    if date_from:
+        where.append("doc_date >= ?")
+        params.append(date_from)
+    if date_to:
+        where.append("doc_date <= ?")
+        params.append(date_to)
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    return _query_board_db(
+        f"""
+        SELECT document_path, item_text, status, doc_date
+        FROM action_items
+        {clause}
+        ORDER BY doc_date DESC, id
+        """,
+        tuple(params),
+        limit,
+        offset,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Tool 5: semantic_search
 # ---------------------------------------------------------------------------
 
 @mcp.tool()

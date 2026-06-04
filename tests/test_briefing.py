@@ -112,6 +112,7 @@ def test_context_builder_writes_google_items_as_grounded(monkeypatch, tmp_path):
         return cal if api == "calendar" else gmail
 
     monkeypatch.setattr(context_builder, "_google_service", fake_service)
+    monkeypatch.setattr(context_builder, "_board_action_items", lambda: [])
 
     assert context_builder.build_context(_console()) == 2
     items = grounded_items(context_file.read_text(encoding="utf-8"))
@@ -144,6 +145,7 @@ def test_context_builder_partial_failure_logs_error_and_keeps_good_source(monkey
         return gmail
 
     monkeypatch.setattr(context_builder, "_google_service", fake_service)
+    monkeypatch.setattr(context_builder, "_board_action_items", lambda: [])
 
     assert context_builder.build_context(_console()) == 1
     items = grounded_items(context_file.read_text(encoding="utf-8"))
@@ -162,6 +164,7 @@ def test_empty_google_pull_writes_placeholders_and_run_brief_suppresses(monkeypa
         return cal if api == "calendar" else gmail
 
     monkeypatch.setattr(context_builder, "_google_service", fake_service)
+    monkeypatch.setattr(context_builder, "_board_action_items", lambda: [])
 
     def fail_ollama(*_args, **_kwargs):
         raise AssertionError("Ollama must not be called without grounded items")
@@ -172,6 +175,32 @@ def test_empty_google_pull_writes_placeholders_and_run_brief_suppresses(monkeypa
     run_brief("morning", preview=True, console=_console())
 
     assert grounded_items(brief.load_context()) == []
+
+
+def test_board_action_items_feed_tasks(monkeypatch, tmp_path):
+    db_path = tmp_path / "board_index.db"
+    import sqlite3
+
+    conn = sqlite3.connect(db_path)
+    conn.executescript(
+        """
+        CREATE TABLE action_items (
+            id INTEGER PRIMARY KEY,
+            document_path TEXT NOT NULL,
+            item_text TEXT NOT NULL,
+            status TEXT NOT NULL,
+            doc_date TEXT
+        );
+        INSERT INTO action_items(document_path, item_text, status, doc_date)
+        VALUES ('board/meetings/example.md', 'Confirm next meeting location', 'open', '2026-05-16');
+        """
+    )
+    conn.close()
+    monkeypatch.setenv("AHSGR_BOARD_INDEX_DB", str(db_path))
+
+    assert context_builder._board_action_items() == [
+        "- board action: Confirm next meeting location (2026-05-16)"
+    ]
 
 
 def test_placeholder_context_has_no_grounded_items():

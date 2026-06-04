@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sqlite3
 from datetime import datetime, timedelta, timezone
 from email.header import decode_header, make_header
 from pathlib import Path
@@ -21,6 +22,7 @@ from rich.console import Console
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTEXT_FILE = REPO_ROOT / "data" / "context.md"
 CLIENT_CREDENTIALS_FILE = REPO_ROOT / "clients" / "ahsgr-north-denver" / "google_credentials.json"
+BOARD_INDEX_DB = REPO_ROOT / "docs" / "board_index.db"
 MT = ZoneInfo("America/Denver")
 
 GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly"
@@ -40,6 +42,12 @@ def build_context(console: Console) -> int:
     tasks: list[str] = []
     research: list[str] = []
     flags: list[str] = []
+
+    try:
+        tasks = _board_action_items()
+    except Exception as exc:  # noqa: BLE001 - scheduled runs must preserve the fabrication gate.
+        LOGGER.error("Board action-item context source failed", exc_info=True)
+        console.print(f"[yellow]board action context unavailable; see logs: {exc}[/]")
 
     try:
         calendar = _calendar_next(_google_service("calendar", "v3", GOOGLE_READONLY_SCOPES))
@@ -181,6 +189,31 @@ def _gmail_followups(gmail: Any) -> list[str]:
         sender = _decode_header(headers.get("from") or "(unknown sender)")
         items.append(f"- reply: {subject} — {sender}")
     return items
+
+
+def _board_action_items(limit: int = 8) -> list[str]:
+    db_path = Path(os.environ.get("AHSGR_BOARD_INDEX_DB", BOARD_INDEX_DB))
+    if not db_path.exists():
+        return []
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(
+            """
+            SELECT item_text, document_path, doc_date
+            FROM action_items
+            WHERE status = 'open'
+            ORDER BY doc_date DESC, id
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    finally:
+        conn.close()
+    return [
+        f"- board action: {row['item_text']} ({row['doc_date'] or row['document_path']})"
+        for row in rows
+    ]
 
 
 def _write_context(

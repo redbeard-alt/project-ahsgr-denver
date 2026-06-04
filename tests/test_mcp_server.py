@@ -9,7 +9,14 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib.ashgr_mcp_server import search_roster, get_chapter_summary, semantic_search
+from build_board_index import build_index
+from lib.ashgr_mcp_server import (
+    search_action_items,
+    search_board_documents,
+    search_roster,
+    get_chapter_summary,
+    semantic_search,
+)
 from lib.normalizer import normalize_name, normalize_role, role_category, make_record
 
 
@@ -78,6 +85,45 @@ class TestMCPTools:
         (tmp_path / "docs").mkdir()
         result = srv.get_chapter_summary()
         assert "error" in result
+
+    def test_board_index_and_mcp_action_search(self, tmp_path, monkeypatch):
+        hub = tmp_path / "hub"
+        board = hub / "board" / "meetings"
+        board.mkdir(parents=True)
+        (board / "2026-05-16-test-minutes.md").write_text(
+            """---
+title: Test Minutes
+topic: board/meetings
+tier: private
+date: 2026-05-16
+---
+
+# Test Minutes
+
+## Action Items
+
+- Confirm next meeting location.
+- [x] Send old minutes.
+""",
+            encoding="utf-8",
+        )
+        db_path = tmp_path / "board_index.db"
+        assert build_index(hub=hub, db_path=db_path) == 1
+        monkeypatch.setenv("AHSGR_BOARD_INDEX_DB", str(db_path))
+
+        docs = search_board_documents(keyword="Test", doc_type="minutes")
+        assert docs[0]["title"] == "Test Minutes"
+
+        actions = search_action_items()
+        hits = [row for row in actions if not row.get("_meta")]
+        assert hits == [
+            {
+                "document_path": "board/meetings/2026-05-16-test-minutes.md",
+                "item_text": "Confirm next meeting location.",
+                "status": "open",
+                "doc_date": "2026-05-16",
+            }
+        ]
 
     def test_semantic_search_reports_missing_index(self, tmp_path, monkeypatch):
         monkeypatch.setenv("AHSGR_DATA_HUB_PATH", str(tmp_path))
