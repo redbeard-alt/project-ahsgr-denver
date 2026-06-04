@@ -7,15 +7,19 @@ current OpenClaw client config.
 Tools:
   search_roster      Search officer/board records (docs/roster_index.csv)
   get_chapter_summary  Coverage stats from docs/roster_index.md
+  semantic_search    Search the private data-hub-ahsgr LanceDB index
 """
 
 import csv
+import os
 import re
 from pathlib import Path
 
 from fastmcp import FastMCP
 
 ROOT = Path(__file__).parent.parent
+DEFAULT_DATA_HUB = Path("/Volumes/BJH/data-hub-ahsgr")
+LANCEDB_TABLE = "ahsgr_denver"
 
 mcp = FastMCP("ahsgr-north-denver")
 
@@ -126,6 +130,64 @@ def get_chapter_summary() -> dict:
         "total_records": int(total.group(1)) if total else 0,
         "role_coverage": role_coverage,
     }
+
+
+# ---------------------------------------------------------------------------
+# Tool 3: semantic_search
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def semantic_search(
+    query: str,
+    limit: int = 5,
+    topic: str = "",
+) -> list[dict]:
+    """Semantic search over the private AHSGR data hub.
+
+    Args:
+        query: Natural-language search query.
+        limit: Max rows to return.
+        topic: Optional topic prefix filter, e.g. board/meetings.
+    """
+    if not query.strip():
+        return [{"error": "query is required"}]
+
+    hub = Path(os.environ.get("AHSGR_DATA_HUB_PATH", DEFAULT_DATA_HUB))
+    index_dir = hub / "data" / "lancedb"
+    if not index_dir.exists():
+        return [{"error": f"LanceDB index not found at {index_dir}. Run `make build` in {hub}."}]
+
+    try:
+        import lancedb
+        from sentence_transformers import SentenceTransformer
+    except ImportError as exc:
+        return [{"error": f"Missing semantic search dependency: {exc}"}]
+
+    db = lancedb.connect(str(index_dir))
+    if LANCEDB_TABLE not in db.table_names():
+        return [{"error": f"Table {LANCEDB_TABLE} not found. Run `make build` in {hub}."}]
+
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    encoded = model.encode(query)
+    vector = encoded.tolist() if hasattr(encoded, "tolist") else encoded
+    table = db.open_table(LANCEDB_TABLE)
+    rows = table.search(vector).limit(max(limit, 1) * 3).to_pandas()
+    if topic:
+        rows = rows[rows["topic"].str.startswith(topic)]
+    rows = rows.head(max(limit, 1))
+
+    results = [
+        {
+            "path": row.get("path", ""),
+            "title": row.get("title", ""),
+            "topic": row.get("topic", ""),
+            "tier": row.get("tier", ""),
+            "year": row.get("year", ""),
+            "text": str(row.get("text", ""))[:500],
+        }
+        for _, row in rows.iterrows()
+    ]
+    return _paginate(results, limit, 0)
 
 
 # ---------------------------------------------------------------------------

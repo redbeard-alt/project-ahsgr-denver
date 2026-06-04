@@ -2,13 +2,14 @@
 
 import csv
 import sys
+import types
 from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib.ashgr_mcp_server import search_roster, get_chapter_summary
+from lib.ashgr_mcp_server import search_roster, get_chapter_summary, semantic_search
 from lib.normalizer import normalize_name, normalize_role, role_category, make_record
 
 
@@ -77,3 +78,85 @@ class TestMCPTools:
         (tmp_path / "docs").mkdir()
         result = srv.get_chapter_summary()
         assert "error" in result
+
+    def test_semantic_search_reports_missing_index(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("AHSGR_DATA_HUB_PATH", str(tmp_path))
+        result = semantic_search("maifest")
+        assert "LanceDB index not found" in result[0]["error"]
+
+    def test_semantic_search_returns_rows(self, tmp_path, monkeypatch):
+        hub = tmp_path / "hub"
+        (hub / "data" / "lancedb").mkdir(parents=True)
+        monkeypatch.setenv("AHSGR_DATA_HUB_PATH", str(hub))
+
+        class _Rows:
+            def __init__(self, rows):
+                self.rows = rows
+
+            def __getitem__(self, _mask):
+                return self
+
+            def head(self, n):
+                return _Rows(self.rows[:n])
+
+            def iterrows(self):
+                return iter(enumerate(self.rows))
+
+        class _StrAccessor:
+            def startswith(self, _topic):
+                return [True]
+
+        class _TopicColumn:
+            str = _StrAccessor()
+
+        class _Frame(_Rows):
+            def __getitem__(self, key):
+                if key == "topic":
+                    return _TopicColumn()
+                return super().__getitem__(key)
+
+        class _Search:
+            def limit(self, _limit):
+                return self
+
+            def to_pandas(self):
+                return _Frame([
+                    {
+                        "path": "board/meetings/example.md",
+                        "title": "Example Meeting",
+                        "topic": "board/meetings",
+                        "tier": "private",
+                        "year": "2026",
+                        "text": "Meeting action items",
+                    }
+                ])
+
+        class _Table:
+            def search(self, _vector):
+                return _Search()
+
+        class _Db:
+            def table_names(self):
+                return ["ahsgr_denver"]
+
+            def open_table(self, _name):
+                return _Table()
+
+        class _Model:
+            def __init__(self, _name):
+                pass
+
+            def encode(self, _query):
+                return [0.1, 0.2]
+
+        monkeypatch.setitem(sys.modules, "lancedb", types.SimpleNamespace(connect=lambda _path: _Db()))
+        monkeypatch.setitem(
+            sys.modules,
+            "sentence_transformers",
+            types.SimpleNamespace(SentenceTransformer=_Model),
+        )
+
+        result = semantic_search("meeting", topic="board/meetings")
+        hits = [row for row in result if not row.get("_meta")]
+        assert hits[0]["title"] == "Example Meeting"
+        assert result[-1]["_total"] == 1
