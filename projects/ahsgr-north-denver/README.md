@@ -1,6 +1,6 @@
 # projects/ahsgr-north-denver
 
-Working folder for the ASHGR North Denver Chapter client engagement.
+Working folder for the AHSGR North Denver Chapter client engagement.
 
 | Folder | Purpose |
 |---|---|
@@ -11,11 +11,11 @@ Working folder for the ASHGR North Denver Chapter client engagement.
 
 ## Promote outputs
 
-Completed roster CSVs → data-hub-ashgr-denver:
+Completed roster CSVs → data-hub-ahsgr:
 
 ```bash
-cd ~/Laboratory/data-hub-ashgr-denver
+cd ~/Laboratory/data-hub-ahsgr
 .venv/bin/python cli.py promote \
-  ~/Laboratory/project-ashgr-denver/projects/ahsgr-north-denver/output/<file>.csv \
-  --topic board/roster --source-agent project-ashgr-denver
+  ~/Laboratory/project-ahsgr-denver/projects/ahsgr-north-denver/output/<file>.csv \
+  --topic board/roster --source-agent project-ahsgr-denver
 ```

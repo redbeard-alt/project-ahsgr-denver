@@ -1,6 +1,6 @@
-# project-ashgr-denver
+# project-ahsgr-denver
 
-Corpus and FastMCP server for the ASHGR North Denver Chapter (American Heritage Society of Germans from Russia).
+Corpus and FastMCP server for the AHSGR North Denver Chapter (American Historical Society of Germans from Russia).
 
 Tracks board and officer roles — president, vice president, secretary, treasurer, directors, newsletter editor, marketing director, and member committee chair — across newsletter issues and member directories.
 
