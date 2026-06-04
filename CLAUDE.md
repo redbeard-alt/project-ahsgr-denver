@@ -6,6 +6,9 @@ Corpus and MCP server for AHSGR North Denver Chapter (American Historical Societ
 
 Mirrors the project-svvsd architecture: extract → normalize → CSV index → FastMCP search tools → openclaw.
 
+Canonical roadmap/status pointer: `~/Laboratory/support/project-ahsgr-denver/MASTER_PLAN.md`
+tracks the separate home-audit remediation and links to the active orchestrator roadmap.
+
 **OpenClaw client slug:** `ahsgr-north-denver`
 **Client type:** `nonprofit-chapter`
 

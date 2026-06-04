@@ -7,6 +7,7 @@ authority.
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 from email.header import decode_header, make_header
@@ -28,6 +29,9 @@ TOKEN_URI = "https://oauth2.googleapis.com/token"
 
 load_dotenv(REPO_ROOT / ".env")  # no-op if absent
 
+LOGGER = logging.getLogger(__name__)
+GOOGLE_READONLY_SCOPES = [GMAIL_READONLY_SCOPE, CALENDAR_READONLY_SCOPE]
+
 
 def build_context(console: Console) -> int:
     """Pull live sources, write ``data/context.md``, and return grounded count."""
@@ -38,14 +42,16 @@ def build_context(console: Console) -> int:
     flags: list[str] = []
 
     try:
-        calendar = _calendar_next(_google_service("calendar", "v3", [CALENDAR_READONLY_SCOPE]))
-    except Exception as exc:  # noqa: BLE001 - keep scheduled runs suppressed, not crashed.
-        console.print(f"[yellow]calendar context unavailable: {exc}[/]")
+        calendar = _calendar_next(_google_service("calendar", "v3", GOOGLE_READONLY_SCOPES))
+    except Exception as exc:  # noqa: BLE001 - scheduled runs must preserve the fabrication gate.
+        LOGGER.error("Calendar context source failed", exc_info=True)
+        console.print(f"[yellow]calendar context unavailable; see logs: {exc}[/]")
 
     try:
-        email = _gmail_followups(_google_service("gmail", "v1", [GMAIL_READONLY_SCOPE]))
-    except Exception as exc:  # noqa: BLE001 - keep scheduled runs suppressed, not crashed.
-        console.print(f"[yellow]gmail context unavailable: {exc}[/]")
+        email = _gmail_followups(_google_service("gmail", "v1", GOOGLE_READONLY_SCOPES))
+    except Exception as exc:  # noqa: BLE001 - scheduled runs must preserve the fabrication gate.
+        LOGGER.error("Gmail context source failed", exc_info=True)
+        console.print(f"[yellow]gmail context unavailable; see logs: {exc}[/]")
 
     grounded_count = _write_context(calendar, tasks, email, research, flags)
     console.print(f"[dim]Wrote {CONTEXT_FILE} with {grounded_count} grounded item(s).[/dim]")

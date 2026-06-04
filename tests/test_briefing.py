@@ -81,6 +81,7 @@ def _patch_context_file(monkeypatch, tmp_path):
 
 def test_context_builder_writes_google_items_as_grounded(monkeypatch, tmp_path):
     context_file = _patch_context_file(monkeypatch, tmp_path)
+    service_scopes = {}
     cal = _CalendarService(
         {
             "items": [
@@ -106,7 +107,8 @@ def test_context_builder_writes_google_items_as_grounded(monkeypatch, tmp_path):
         },
     )
 
-    def fake_service(api, _version, _scopes):
+    def fake_service(api, _version, scopes):
+        service_scopes[api] = scopes
         return cal if api == "calendar" else gmail
 
     monkeypatch.setattr(context_builder, "_google_service", fake_service)
@@ -116,6 +118,39 @@ def test_context_builder_writes_google_items_as_grounded(monkeypatch, tmp_path):
 
     assert "- 09:30 MT: Board packet review (Zoom)" in items
     assert "- reply: Treasurer report — Treasurer <treasurer@example.org>" in items
+    assert service_scopes["calendar"] == context_builder.GOOGLE_READONLY_SCOPES
+    assert service_scopes["gmail"] == context_builder.GOOGLE_READONLY_SCOPES
+
+
+def test_context_builder_partial_failure_logs_error_and_keeps_good_source(monkeypatch, tmp_path, caplog):
+    context_file = _patch_context_file(monkeypatch, tmp_path)
+    gmail = _GmailService(
+        ["abc123"],
+        {
+            "abc123": {
+                "payload": {
+                    "headers": [
+                        {"name": "Subject", "value": "Membership renewal"},
+                        {"name": "From", "value": "Member <member@example.org>"},
+                    ]
+                }
+            }
+        },
+    )
+
+    def fake_service(api, _version, _scopes):
+        if api == "calendar":
+            raise RuntimeError("calendar token missing calendar scope")
+        return gmail
+
+    monkeypatch.setattr(context_builder, "_google_service", fake_service)
+
+    assert context_builder.build_context(_console()) == 1
+    items = grounded_items(context_file.read_text(encoding="utf-8"))
+
+    assert "- reply: Membership renewal — Member <member@example.org>" in items
+    assert "Calendar context source failed" in caplog.text
+    assert "calendar token missing calendar scope" in caplog.text
 
 
 def test_empty_google_pull_writes_placeholders_and_run_brief_suppresses(monkeypatch, tmp_path):
