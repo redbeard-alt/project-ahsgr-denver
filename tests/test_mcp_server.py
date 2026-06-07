@@ -1,11 +1,9 @@
 """Tests for ashgr_mcp_server tools (offline — no gateway required)."""
 
-import csv
 import sys
 import types
 from pathlib import Path
 
-import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -14,7 +12,6 @@ from lib.ashgr_mcp_server import (
     search_action_items,
     search_board_documents,
     search_roster,
-    get_chapter_summary,
     semantic_search,
 )
 from lib.normalizer import normalize_name, normalize_role, role_category, make_record

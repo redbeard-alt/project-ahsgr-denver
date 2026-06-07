@@ -69,7 +69,6 @@ def build_context(console: Console) -> int:
 def _google_service(api: str, version: str, scopes: list[str]) -> Any:
     """Return an authenticated Google API service using the repo OAuth config."""
     from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
 
     creds = _credentials_from_env(scopes) or _credentials_from_file(scopes)
